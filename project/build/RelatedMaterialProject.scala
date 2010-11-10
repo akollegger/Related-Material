@@ -1,7 +1,7 @@
 import sbt._
+import sbt.FileUtilities._
 import scala.util.matching.Regex
 import org.clapper.sbtplugins.MarkdownPlugin
-import java.io.File
 
 class RelatedMaterialProject(info: ProjectInfo)
 extends DefaultProject(info) with MarkdownPlugin
@@ -22,7 +22,7 @@ extends DefaultProject(info) with MarkdownPlugin
     {
       log.info("producing multiple html in " + htmlOutputPath + " from each of " + allTextFiles)
 
-        if (!htmlOutputPath.exists) htmlOutputPath.asFile.mkdirs 
+        createDirectory(htmlOutputPath, log)
 
         allTextFiles.get.foreach(textFile =>
           textFile.toString match {
@@ -31,6 +31,15 @@ extends DefaultProject(info) with MarkdownPlugin
         )
         None
     } describedAs "generates html for each markdown file, using Showdown and MarkdownPlugin"
+
+    lazy val pandocAsHtml = fileTask(htmlOutputPath from allTextFiles)
+    {
+      log.info("using pandoc to produce html from each of " + allTextFiles)
+
+        createDirectory(htmlOutputPath, log)
+
+    } describedAs "uses pandoc to produce html"
+
 
 }
 

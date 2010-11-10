@@ -3,3 +3,5 @@ lib_managed/
 src_managed/
 project/boot/
 markdown_lib/
+*.swp
+*.swo
