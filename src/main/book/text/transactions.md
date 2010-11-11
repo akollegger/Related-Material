@@ -11,7 +11,7 @@ changes made only in a nested transaction.
 
 When working with transactions the interaction cycle looks like this:
 
-1. Begin a transaction	
+1. Begin a transaction
 2. Operate on the graph performing write operations
 3. Mark the transaction as successful or not
 4. Finish the transaction
@@ -49,7 +49,7 @@ unless a local modification within the current transaction exist.
 The default isolation level is very similar to `READ_COMMITTED`, reads
 do not block or take any locks so non-repeatable reads can occur.
 It is possible to achieve stronger isolation level (such as
-REPETABLE_READ and SERIALIZABLE) by manually acquiring read and
+`REPETABLE_READ` and `SERIALIZABLE`) by manually acquiring read and
 write locks.
 
 The default lock behavior is:	
@@ -64,18 +64,55 @@ The default lock behavior is:
 Deadlocks
 ---------
 
-Since locks are used it is possible for deadlocks to happen. Neo4j will however detect any deadlock (caused by acquiring a lock) before they happen and throw an exception. Before the exception is thrown the transaction is marked for rollback. All locks acquired by the transaction are still being held but will be released when the transaction is finished (in the finally block as pointed out earlier). Once the locks are released other transactions that were waiting for locks held by the transaction causing the deadlock can proceed. The work performed by the transaction causing the deadlock can then be retried by the user if needed.
+Since locks are used it is possible for deadlocks to happen. Neo4j
+will however detect any deadlock (caused by acquiring a lock) before
+they happen and throw an exception. Before the exception is thrown
+the transaction is marked for rollback. All locks acquired by the
+transaction are still being held but will be released when the
+transaction is finished (in the finally block as pointed out earlier).
+Once the locks are released other transactions that were waiting
+for locks held by the transaction causing the deadlock can proceed.
+The work performed by the transaction causing the deadlock can then
+be retried by the user if needed.
 
-Experiencing frequent deadlocks is an indication of concurrent write requests happening in such a way that it is not possible to execute while at the same time live up to the intended isolation and consistency. The solution is to make sure concurrent updates happen in a reasonable way. For example given two specific nodes (A and B), adding or deleting relationships to both these nodes in random order for each transaction will result in deadlocks when there are two or more transactions doing that concurrently. The solution is to make sure updates always happens in the same order (first A then B). Another solution is to make sure each thread/transaction does not have any conflicting writes to a node or relationship as some other concurrent transaction (example, let a single thread do all updates of a specific type).
+Experiencing frequent deadlocks is an indication of concurrent write
+requests happening in such a way that it is not possible to execute
+while at the same time live up to the intended isolation and
+consistency. The solution is to make sure concurrent updates happen
+in a reasonable way. For example given two specific nodes (A and
+B), adding or deleting relationships to both these nodes in random
+order for each transaction will result in deadlocks when there are
+two or more transactions doing that concurrently. The solution is
+to make sure updates always happens in the same order (first A then
+B). Another solution is to make sure each thread/transaction does
+not have any conflicting writes to a node or relationship as some
+other concurrent transaction (example, let a single thread do all
+updates of a specific type).
 
-Deadlocks caused by the use of other synchronization than the locks managed by Neo4j can still happen. Since all operations in the Neo4j API are to be considered thread safe there is no need for external synchronization. Other code that requires synchronization should be synchronized in such a way that it never performs any Neo4j operation in the synchronized block.
-Delete semantics
+Deadlocks caused by the use of other synchronization than the locks
+managed by Neo4j can still happen. Since all operations in the Neo4j
+API are to be considered thread safe there is no need for external
+synchronization. Other code that requires synchronization should
+be synchronized in such a way that it never performs any Neo4j
+operation in the synchronized block.  Delete semantics
 
-When deleting a node or a relationship all properties for that entity will be automatically removed but the relationships of a node will not be removed. Neo4j enforces a constraint (upon commit) that all relationships must have a valid start and end node. In effect this means that trying to delete a node that still has relationships attached will throw an exception upon commit. It is however possible to choose in which order to delete the node and the attached relationships as long as no relationships exist when the transaction is committed. Delete semantics can be summarized in the following bullets:
-	
-All properties of a node or relationship will be removed when deleted	
-A deleted node can not have any attached relationships when the transaction commits	
-It is possible to acquire a reference to a deleted relationship or node that has not yet been committed
-Any write operation on a node or relationship after it has been deleted (but not yet committed) will throw an exception
-After commit trying to acquire a new or work with an old reference to a deleted node or relationship will throw an exception
+When deleting a node or a relationship all properties for that
+entity will be automatically removed but the relationships of a
+node will not be removed. Neo4j enforces a constraint (upon commit)
+that all relationships must have a valid start and end node. In
+effect this means that trying to delete a node that still has
+relationships attached will throw an exception upon commit. It is
+however possible to choose in which order to delete the node and
+the attached relationships as long as no relationships exist when
+the transaction is committed. Delete semantics can be summarized
+in the following bullets:
+
+All properties of a node or relationship will be removed when deleted
+A deleted node can not have any attached relationships when the
+transaction commits It is possible to acquire a reference to a
+deleted relationship or node that has not yet been committed Any
+write operation on a node or relationship after it has been deleted
+(but not yet committed) will throw an exception After commit trying
+to acquire a new or work with an old reference to a deleted node
+or relationship will throw an exception
 
