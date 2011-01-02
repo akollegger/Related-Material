@@ -1,9 +1,7 @@
-Related Material on the Web
-===========================
+Related Material 
+================
 
 
-Sync with master branch
------------------------
+[http://akollegger.github.com/Related-Material/]
 
-`git checkout master src/main/book/text/`
 
