@@ -1,7 +1,0 @@
-Goodbye
-=======
-
-My friend.
-
-
-
